@@ -70,11 +70,35 @@ class Blockchain:
                                   'amount': amount})
         previous_block = self.get_previous_block()
         return previous_block['index'] + 1
+    
+    def add_node(self, address):
+        parsed_url = urlparse(address)
+        self.nodes.add(parsed_url.netloc)
+        
+    def replace_chain(self):
+        network = self.nodes
+        longest_chain = None
+        max_lenght = len(self.chain)
+        for nodes in network:
+            response = requests.get(f'http://{node}/get_chain')
+            if response.status_code == 200:
+                lenght = response.json()['lenght']
+                chain = response.json()['chain']
+                if lenght > max_lenght and self.is_chain_valid(chain):
+                    max_length = lenght
+                    longest_chain = chain
+        if longest_chain:
+            self.chain = longest_chain
+            return True
+        return False
         
 # Part 2 - Mining our Blockchain
             
 # Creating a Web App
 app = Flask(__name__)
+
+# Creating an adress for the node on Port 5000
+node_address = str(uuid4()).replace('-', '')
 
 # Creating a Blockchain
 blockchain = Blockchain()
@@ -86,13 +110,15 @@ def mine_block():
     previous_proof = previous_block['proof']
     proof, hash_operation = blockchain.proof_of_work(previous_proof)
     previous_hash = blockchain.hash(previous_block)
+    blockchain.add_transaction(sender = node_address, receiver = 'Hadelin', amount = 1)
     block = blockchain.create_block(proof, previous_hash, hash_operation)
     response = {'message': 'Congratulations, you just mined a block!',
                 'index': block['index'],
                 'timestamp': block['timestamp'],
                 'proof': block['proof'],
                 'previous_hash': block['previous_hash'],
-                'hash_operation': block['hash_operation']}
+                'hash_operation': block['hash_operation'],
+                'transactions': block['transactions']}
     return jsonify(response), 200
 
 #Getting the full Blockchaing
@@ -109,9 +135,20 @@ def is_valid():
     if is_valid:
         response = {'message': 'All good. The Blockchain is valid.'}
     else:
-        response = {'message': 'Houstonm we have a problem. The Blockchain is not valid.'}
+        response = {'message': 'Houston, we have a problem. The Blockchain is not valid.'}
     return jsonify(response), 200 
 
+# adding a new transaction to the Blockchain
+@app.route('/add_transaction', methods = ['POST'])
+def add_transaction():
+    json = request.get_json()
+    transaction_keys = ['sender', 'receiver', 'amount']
+    if not all (key in json for key in transaction_keys):
+        return "Some element of the transaction are missing', 400
+    index = blockchain.add_transaction(json['sender'], json['receiver'], json['amount'])
+    response = {'message': f'This transaction will be added to Block {index}'}
+    return jsonify(response), 201
+  
 # Part 3 - Decentralizing of Blockchain
 
 #Running the app
