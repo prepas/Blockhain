@@ -151,5 +151,19 @@ def add_transaction():
   
 # Part 3 - Decentralizing of Blockchain
 
+# @ Connecting new nodes
+@app.route('/connect_node', methods = ['POST'])
+def connect_node():
+    json = request.get_json()
+    nodes = json.get('nodes')
+    if nodes is None:
+        return "No node", 400
+    for node in nodes:
+        blockchain.add_node(node)
+    response = {'message': 'All the nodes are now connected. The Hadcoin Blockchain now contains the following nodes:',
+                'total_nodes': list(blockchain.nodes)}
+    return jsonify(response), 201
+
+# Replacing the chain by the longest chain if needed
 #Running the app
 app.run(host = '0.0.0.0', port = 5000)
