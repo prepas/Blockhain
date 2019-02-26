@@ -169,9 +169,11 @@ def connect_node():
 def replace_chain():
     is_chain_replaced = blockchain.replace_chain()
     if is_chain_replaced:
-        response = {'message': 'The node had different chains was replaced by the longst one.'}
+        response = {'message': 'The node had different chains was replaced by the longst one.',
+                    'new_chain': blockchain.chain}
     else:
-        response = {'message': 'All good. The chain is the largest one.'}
+        response = {'message': 'All good. The chain is the largest one.',
+                    'actual_chain': blockchain.chain}
     return jsonify(response), 200
 
 #Running the app
