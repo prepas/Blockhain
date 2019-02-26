@@ -64,7 +64,7 @@ class Blockchain:
             block_index += 1
             return True
         
-    def add_transaction(self. sender, receiver, amount):
+    def add_transaction(self, sender, receiver, amount):
         self.transactions.append({'sender': sender,
                                   'receiver': receiver,
                                   'amount': amount})
@@ -144,7 +144,7 @@ def add_transaction():
     json = request.get_json()
     transaction_keys = ['sender', 'receiver', 'amount']
     if not all (key in json for key in transaction_keys):
-        return "Some element of the transaction are missing', 400
+        return 'Some element of the transaction are missing', 400
     index = blockchain.add_transaction(json['sender'], json['receiver'], json['amount'])
     response = {'message': f'This transaction will be added to Block {index}'}
     return jsonify(response), 201
